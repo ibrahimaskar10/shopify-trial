@@ -249,7 +249,7 @@
       }
 
       /* Apply RTL to the header only if the language is Arabic */
-      .header-rtl {
+       .rtl-header {
         {% if request.locale.iso_code == 'ar' %}
           direction: rtl;
           text-align: right;
@@ -318,7 +318,7 @@
       {%- render 'cart-drawer' -%}
     {%- endif -%}
 
-    <header class="header-rtl">
+    <header class="rtl-header">
       {% sections 'header-group' %}
     </header>
     <main id="MainContent" class="content-for-layout focus-none" role="main" tabindex="-1">
