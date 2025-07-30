@@ -34,7 +34,7 @@ jobs:
             --ignore config/settings_data.json \
             --ignore templates/*.json \
             --ignore sections/*.json \
-            --theme 185732661512 \
+            --theme ${{secrets.SHOPIFY_LIVE_THEME_ID}} \
             --store ${{ secrets.SHOPIFY_STORE_URL }} \
             --password ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }} \
             --allow-live
