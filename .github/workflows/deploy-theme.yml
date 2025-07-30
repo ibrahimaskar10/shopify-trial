@@ -9,21 +9,32 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v2
+
+      # Set up Node.js environment
       - uses: actions/setup-node@v3
         with:
           node-version: 18
 
+      # Install Shopify CLI
       - name: Install Shopify CLI
         run: npm install -g @shopify/cli
 
+      # Verify Shopify CLI installation (optional but helpful for debugging)
+      - name: Check Shopify CLI version
+        run: shopify version
+
+      # Upload theme to Shopify
       - name: Upload theme
         run: |
           shopify theme push \
             --json \
-						--ignore config/settings_data.json templates/*.json sections/*.json \
-            --theme your-theme-name-or-id \
+            --ignore config/settings_data.json \
+            --ignore templates/*.json \
+            --ignore sections/*.json \
+            --theme 1234567890 \  # Replace with your actual theme ID
             --store ${{ secrets.SHOPIFY_STORE_URL }} \
-			      --password ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }} \
+            --password ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }} \
             --allow-live
