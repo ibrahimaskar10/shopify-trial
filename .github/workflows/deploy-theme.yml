@@ -34,7 +34,7 @@ jobs:
             --ignore config/settings_data.json \
             --ignore templates/*.json \
             --ignore sections/*.json \
-            --theme 1234567890 \  # Replace with your actual theme ID
+            --theme 185732661512 \
             --store ${{ secrets.SHOPIFY_STORE_URL }} \
             --password ${{ secrets.SHOPIFY_CLI_THEME_TOKEN }} \
             --allow-live
