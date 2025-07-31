@@ -83,6 +83,7 @@
       {%- else -%}
         <div class="card__content">
           <div class="card__information">
+              <div style="display:flex; justify-content:space-between; align-items:center">
             <h3 class="card__heading">
               <a
                 {% if card_collection == blank %}
@@ -104,6 +105,12 @@
                 {%- endif %}
               </a>
             </h3>
+            {%- if card_product.variants.size == 1 -%}
+              <button class="add-to-cart" data-product-id="{{ card_product.id }}">
+                <img src="{{ 'add-to-cart-icon.svg' | asset_url }}" alt="Add to Cart">
+              </button>
+            {%- endif -%}
+          </div>
             {%- if card_collection.description != blank -%}
               <p class="card__caption">
                 {{- card_collection.description | strip_html | truncatewords: 12 -}}

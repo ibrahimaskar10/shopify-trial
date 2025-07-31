@@ -10,6 +10,12 @@ class CartNotification extends HTMLElement {
     this.querySelectorAll('button[type="button"]').forEach((closeButton) =>
       closeButton.addEventListener('click', this.close.bind(this))
     );
+     window.addEventListener('cart:updated', (event) => {
+      console.log({event})
+      const cart = event.detail
+      this.renderContents({...cart.items[0],sections:cart.sections})
+      this.open()
+    });
   }
 
   open() {
@@ -35,6 +41,7 @@ class CartNotification extends HTMLElement {
   }
 
   renderContents(parsedState) {
+    console.log({parsedState})
     this.cartItemKey = parsedState.key;
     this.getSectionsToRender().forEach((section) => {
       document.getElementById(section.id).innerHTML = this.getSectionInnerHTML(
