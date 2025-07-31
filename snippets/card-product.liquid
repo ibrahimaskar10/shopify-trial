@@ -145,21 +145,28 @@
       </div>
       <div class="card__content">
         <div class="card__information">
-          <h3
-            class="card__heading{% if card_product.featured_media or settings.card_style == 'standard' %} h5{% endif %}"
-            {% if card_product.featured_media or settings.card_style == 'card' %}
-              id="title-{{ section_id }}-{{ card_product.id }}"
-            {% endif %}
-          >
-            <a
-              href="{{ card_product.url }}"
-              id="CardLink-{{ section_id }}-{{ card_product.id }}"
-              class="full-unstyled-link"
-              aria-labelledby="CardLink-{{ section_id }}-{{ card_product.id }} Badge-{{ section_id }}-{{ card_product.id }}"
-            >
-              {{ card_product.title | escape }}
-            </a>
-          </h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding-right:1rem; position:relative;">
+              <h3
+                class="card__heading{% if card_product.featured_media or settings.card_style == 'standard' %} h5{% endif %}"
+                {% if card_product.featured_media or settings.card_style == 'card' %}
+                  id="title-{{ section_id }}-{{ card_product.id }}"
+                {% endif %}
+              >
+                <a
+                  href="{{ card_product.url }}"
+                  id="CardLink-{{ section_id }}-{{ card_product.id }}"
+                  class="full-unstyled-link"
+                  aria-labelledby="CardLink-{{ section_id }}-{{ card_product.id }} Badge-{{ section_id }}-{{ card_product.id }}"
+                >
+                  {{ card_product.title | escape }}
+                </a>
+              </h3>
+              {% comment %} {% if card_product.variants.size == 1 %} {% endcomment %}
+                <button class="add-to-cart" data-product-id="{{ card_product.id }}" data-product-url="{{ card_product.url }}" data-variant-id="{{ card_product.variants.first.id }}" style="background:transparent; border:none; position:absolute; right:0;z-index:100;cursor:pointer">
+                  <img src="{{ 'icon-cart.svg' | asset_url }}" width="32" height="32" alt="Add to Cart">
+                </button>
+              {% comment %} {% endif %} {% endcomment %}
+            </div>
           <div class="card-information">
             {%- if show_vendor -%}
               <span class="visually-hidden">{{ 'accessibility.vendor' | t }}</span>
@@ -622,3 +629,53 @@
     </div>
   </div>
 {%- endif -%}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Find all "Add to Cart" buttons
+  const addToCartButtons = document.querySelectorAll('.add-to-cart');
+  
+  addToCartButtons.forEach(button => {
+    button.addEventListener('click', function(event) {
+      event.preventDefault();
+
+      const productId = this.getAttribute('data-product-id');
+      const productUrl = this.getAttribute('data-product-url');
+      const variantId = this.getAttribute('data-variant-id');
+      console.log({
+        productId, variantId
+      })
+      addToCart(productId, variantId,productUrl);  
+    });
+  });
+
+  function addToCart(productId, variantId,productUrl) {
+    const data = {
+      items: [{
+        id: variantId,
+        quantity: 1,
+      }],
+      sections: "cart-notification-product,cart-notification-button,cart-icon-bubble",
+      sections_url: productUrl
+    };
+    fetch('/cart/add.js', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(cart => {
+      console.log({cart})
+      const event = new CustomEvent('cart:updated', {
+        detail: cart 
+      });
+      window.dispatchEvent(event);
+    })
+    .catch(error => {
+      console.error('Error adding to cart:', error);
+    });
+  }
+});
+
+</script>
