@@ -133,9 +133,20 @@
                     {%- endif -%}
                   </div>
                 {%- endif -%}
+                
                 {% if product.metafields.custom.material %}
                   <div class="product-material">
                     <strong>Material:</strong> {{ product.metafields.custom.material }}
+                  </div>
+                {% endif %}
+                {% if product.metafields.custom.care_guide %}
+                  {% assign care_guide = product.metafields.custom.care_guide %}
+                  <div class="care-guide">
+                    <h3>{{ care_guide.value.title }}</h3>
+                    <p>{{ care_guide.value.description }}</p>
+                    {% if care_guide.value.image %}
+                      <img src="{{ care_guide.value.image | file_url }}" alt="{{ care_guide.value.title }} care guide" width="50" height="50" />
+                    {% endif %}
                   </div>
                 {% endif %}
                 <div {{ block.shopify_attributes }}>
