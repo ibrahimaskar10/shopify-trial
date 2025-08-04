@@ -76,53 +76,10 @@
         "padding_top": 44,
         "padding_bottom": 36
       }
-    },
-    "collapsible_content_fgXp3Y": {
-      "type": "collapsible-content",
-      "blocks": {
-        "collapsible_row_zV8tdU": {
-          "type": "collapsible_row",
-          "settings": {
-            "heading": "Lorem ipsum dolor sit amet",
-            "icon": "none",
-            "row_content": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas porttitor nibh augue, sed congue odio vulputate sed. Integer vulputate vestibulum sodales. Pellentesque iaculis purus ex, id posuere nisi rhoncus id. Phasellus velit ante, suscipit vel auctor eget, molestie vitae libero. Etiam sodales facilisis metus. Fusce pellentesque lobortis ornare. Sed a faucibus lacus, id venenatis lacus. Phasellus euismod dui id augue malesuada porttitor.</p>",
-            "page": ""
-          }
-        },
-        "collapsible_row_HcJgG8": {
-          "type": "collapsible_row",
-          "settings": {
-            "heading": "Lorem ipsum dolor sit amet",
-            "icon": "none",
-            "row_content": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas porttitor nibh augue, sed congue odio vulputate sed. Integer vulputate vestibulum sodales. Pellentesque iaculis purus ex, id posuere nisi rhoncus id. Phasellus velit ante, suscipit vel auctor eget, molestie vitae libero. Etiam sodales facilisis metus. Fusce pellentesque lobortis ornare. Sed a faucibus lacus, id venenatis lacus. Phasellus euismod dui id augue malesuada porttitor. </p>",
-            "page": ""
-          }
-        }
-      },
-      "block_order": [
-        "collapsible_row_zV8tdU",
-        "collapsible_row_HcJgG8"
-      ],
-      "name": "t:sections.collapsible_content.presets.name",
-      "settings": {
-        "caption": "",
-        "heading": "Frequently Asked Question",
-        "heading_size": "h1",
-        "heading_alignment": "center",
-        "layout": "none",
-        "container_color_scheme": "",
-        "color_scheme": "",
-        "open_first_collapsible_row": false,
-        "image_ratio": "adapt",
-        "desktop_layout": "image_second",
-        "padding_top": 36,
-        "padding_bottom": 36
-      }
     }
   },
   "order": [
     "image_banner",
-    "featured_collection",
-    "collapsible_content_fgXp3Y"
+    "featured_collection"
   ]
 }
