@@ -101,33 +101,13 @@
       </product-form>
 
       {%- comment -%} Out of stock display logic {%- endcomment -%}
-      {%- if product != blank and product.variants.size > 0 -%}
+      {%- if product != blank and product.variants.size > 1 -%}
         {%- liquid
           assign out_of_stock_options = ''
           assign option_names = ''
+          assign has_any_out_of_stock_variants = false
           
-          # Get all option names
-          for option in product.options_with_values
-            if option_names != ''
-              assign option_names = option_names | append: '|' | append: option.name
-            else
-              assign option_names = option.name
-            endif
-          endfor
-          
-          # Create a structure to track out-of-stock options for each option type
-          assign option_names_array = option_names | split: '|'
-          assign out_of_stock_by_option = ''
-          
-          # Initialize tracking for each option
-          for option_name in option_names_array
-            assign option_key = option_name | downcase | replace: ' ', '_'
-            assign out_of_stock_by_option = out_of_stock_by_option | append: option_key | append: ':' | append: '' | append: '|'
-          endfor
-          
-          # First pass: collect all option values and their stock status
-          assign option_value_tracking = ''
-          
+          # First check if there are any out-of-stock variants at all
           for variant in product.variants
             assign check_against_inventory = true
             if variant.inventory_management != 'shopify' or variant.inventory_policy == 'continue'
@@ -139,130 +119,172 @@
               assign quantity_rule_soldout = false
             endif
             
-            assign is_out_of_stock = false
             if variant.available == false or quantity_rule_soldout
-              assign is_out_of_stock = true
+              assign has_any_out_of_stock_variants = true
+              break
             endif
-            
-            # Check each option for this variant
-            for i in (1..3)
-              assign option_value = ''
-              assign option_index = i | minus: 1
-              
-              if i == 1 and variant.option1 != blank
-                assign option_value = variant.option1
-              elsif i == 2 and variant.option2 != blank
-                assign option_value = variant.option2
-              elsif i == 3 and variant.option3 != blank
-                assign option_value = variant.option3
-              endif
-              
-              if option_value != '' and option_index < option_names_array.size
-                assign current_option_name = option_names_array[option_index]
-                assign option_key = current_option_name | downcase | replace: ' ', '_'
-                
-                # Create tracking entry: option_key:option_value:has_stock
-                assign tracking_entry = option_key | append: ':' | append: option_value | append: ':' | append: is_out_of_stock | append: '|'
-                assign option_value_tracking = option_value_tracking | append: tracking_entry
+          endfor
+        -%}
+
+        {%- if has_any_out_of_stock_variants -%}
+          {%- liquid
+            # Get all option names
+            for option in product.options_with_values
+              if option_names != ''
+                assign option_names = option_names | append: '|' | append: option.name
+              else
+                assign option_names = option.name
               endif
             endfor
-          endfor
-          
-          # Second pass: analyze which option values are completely out of stock
-          assign option_value_tracking_array = option_value_tracking | split: '|'
-          assign option_value_status = ''
-          
-          for tracking_entry in option_value_tracking_array
-            if tracking_entry != ''
-              assign entry_parts = tracking_entry | split: ':'
-              assign option_key = entry_parts[0]
-              assign option_value = entry_parts[1]
-              assign has_stock = entry_parts[2]
+            
+            # Create a structure to track out-of-stock options for each option type
+            assign option_names_array = option_names | split: '|'
+            assign out_of_stock_by_option = ''
+            
+            # Initialize tracking for each option
+            for option_name in option_names_array
+              assign option_key = option_name | downcase | replace: ' ', '_'
+              assign out_of_stock_by_option = out_of_stock_by_option | append: option_key | append: ':' | append: '' | append: '|'
+            endfor
+            
+            # First pass: collect all option values and their stock status
+            assign option_value_tracking = ''
+            
+            for variant in product.variants
+              assign check_against_inventory = true
+              if variant.inventory_management != 'shopify' or variant.inventory_policy == 'continue'
+                assign check_against_inventory = false
+              endif
+              if variant.quantity_rule.min > variant.inventory_quantity and check_against_inventory
+                assign quantity_rule_soldout = true
+              else
+                assign quantity_rule_soldout = false
+              endif
               
-              # Check if we've already processed this option value
-              assign already_processed = false
-              assign processed_entries = option_value_status | split: '|'
-              for processed_entry in processed_entries
-                if processed_entry != ''
-                  assign processed_parts = processed_entry | split: ':'
-                  assign processed_key = processed_parts[0]
-                  assign processed_value = processed_parts[1]
-                  if processed_key == option_key and processed_value == option_value
-                    assign already_processed = true
-                    break
-                  endif
+              assign is_out_of_stock = false
+              if variant.available == false or quantity_rule_soldout
+                assign is_out_of_stock = true
+              endif
+              
+              # Check each option for this variant
+              for i in (1..3)
+                assign option_value = ''
+                assign option_index = i | minus: 1
+                
+                if i == 1 and variant.option1 != blank
+                  assign option_value = variant.option1
+                elsif i == 2 and variant.option2 != blank
+                  assign option_value = variant.option2
+                elsif i == 3 and variant.option3 != blank
+                  assign option_value = variant.option3
+                endif
+                
+                if option_value != '' and option_index < option_names_array.size
+                  assign current_option_name = option_names_array[option_index]
+                  assign option_key = current_option_name | downcase | replace: ' ', '_'
+                  
+                  # Create tracking entry: option_key:option_value:has_stock
+                  assign tracking_entry = option_key | append: ':' | append: option_value | append: ':' | append: is_out_of_stock | append: '|'
+                  assign option_value_tracking = option_value_tracking | append: tracking_entry
                 endif
               endfor
-              
-              if already_processed == false
-                # Check if this option value has any variants in stock
-                assign has_any_stock = false
-                for check_entry in option_value_tracking_array
-                  if check_entry != ''
-                    assign check_parts = check_entry | split: ':'
-                    assign check_key = check_parts[0]
-                    assign check_value = check_parts[1]
-                    assign check_stock = check_parts[2]
+            endfor
+            
+            # Second pass: analyze which option values are completely out of stock
+            assign option_value_tracking_array = option_value_tracking | split: '|'
+            assign option_value_status = ''
+            
+            for tracking_entry in option_value_tracking_array
+              if tracking_entry != ''
+                assign entry_parts = tracking_entry | split: ':'
+                assign option_key = entry_parts[0]
+                assign option_value = entry_parts[1]
+                assign has_stock = entry_parts[2]
+                
+                # Check if we've already processed this option value
+                assign already_processed = false
+                assign processed_entries = option_value_status | split: '|'
+                for processed_entry in processed_entries
+                  if processed_entry != ''
+                    assign processed_parts = processed_entry | split: ':'
+                    assign processed_key = processed_parts[0]
+                    assign processed_value = processed_parts[1]
+                    if processed_key == option_key and processed_value == option_value
+                      assign already_processed = true
+                      break
+                    endif
+                  endif
+                endfor
+                
+                if already_processed == false
+                  # Check if this option value has any variants in stock
+                  assign has_any_stock = false
+                  for check_entry in option_value_tracking_array
+                    if check_entry != ''
+                      assign check_parts = check_entry | split: ':'
+                      assign check_key = check_parts[0]
+                      assign check_value = check_parts[1]
+                      assign check_stock = check_parts[2]
+                      
+                      if check_key == option_key and check_value == option_value
+                        if check_stock == 'false'
+                          assign has_any_stock = true
+                          break
+                        endif
+                      endif
+                    endif
+                  endfor
+                  
+                  # Add to tracking
+                  assign status_entry = option_key | append: ':' | append: option_value | append: ':' | append: has_any_stock | append: '|'
+                  assign option_value_status = option_value_status | append: status_entry
+                endif
+              endif
+            endfor
+            
+            # Third pass: build the final out-of-stock lists
+            assign option_value_status_array = option_value_status | split: '|'
+            assign out_of_stock_by_option_array = out_of_stock_by_option | split: '|'
+            assign updated_out_of_stock_by_option = ''
+            
+            for option_entry in out_of_stock_by_option_array
+              if option_entry != ''
+                assign entry_parts = option_entry | split: ':'
+                assign entry_key = entry_parts[0]
+                assign entry_values = entry_parts[1]
+                
+                # Find all out-of-stock values for this option
+                assign out_of_stock_values = ''
+                for status_entry in option_value_status_array
+                  if status_entry != ''
+                    assign status_parts = status_entry | split: ':'
+                    assign status_key = status_parts[0]
+                    assign status_value = status_parts[1]
+                    assign status_has_stock = status_parts[2]
                     
-                    if check_key == option_key and check_value == option_value
-                      if check_stock == 'false'
-                        assign has_any_stock = true
-                        break
+                    if status_key == entry_key and status_has_stock == 'false'
+                      if out_of_stock_values != ''
+                        assign out_of_stock_values = out_of_stock_values | append: ',' | append: status_value
+                      else
+                        assign out_of_stock_values = status_value
                       endif
                     endif
                   endif
                 endfor
                 
-                # Add to tracking
-                assign status_entry = option_key | append: ':' | append: option_value | append: ':' | append: has_any_stock | append: '|'
-                assign option_value_status = option_value_status | append: status_entry
-              endif
-            endif
-          endfor
-          
-          # Third pass: build the final out-of-stock lists
-          assign option_value_status_array = option_value_status | split: '|'
-          assign out_of_stock_by_option_array = out_of_stock_by_option | split: '|'
-          assign updated_out_of_stock_by_option = ''
-          
-          for option_entry in out_of_stock_by_option_array
-            if option_entry != ''
-              assign entry_parts = option_entry | split: ':'
-              assign entry_key = entry_parts[0]
-              assign entry_values = entry_parts[1]
-              
-              # Find all out-of-stock values for this option
-              assign out_of_stock_values = ''
-              for status_entry in option_value_status_array
-                if status_entry != ''
-                  assign status_parts = status_entry | split: ':'
-                  assign status_key = status_parts[0]
-                  assign status_value = status_parts[1]
-                  assign status_has_stock = status_parts[2]
-                  
-                  if status_key == entry_key and status_has_stock == 'false'
-                    if out_of_stock_values != ''
-                      assign out_of_stock_values = out_of_stock_values | append: ',' | append: status_value
-                    else
-                      assign out_of_stock_values = status_value
-                    endif
-                  endif
+                if updated_out_of_stock_by_option != ''
+                  assign updated_out_of_stock_by_option = updated_out_of_stock_by_option | append: '|' | append: entry_key | append: ':' | append: out_of_stock_values
+                else
+                  assign updated_out_of_stock_by_option = entry_key | append: ':' | append: out_of_stock_values
                 endif
-              endfor
-              
-              if updated_out_of_stock_by_option != ''
-                assign updated_out_of_stock_by_option = updated_out_of_stock_by_option | append: '|' | append: entry_key | append: ':' | append: out_of_stock_values
-              else
-                assign updated_out_of_stock_by_option = entry_key | append: ':' | append: out_of_stock_values
               endif
-            endif
-          endfor
-          
-          assign out_of_stock_by_option = updated_out_of_stock_by_option
-        -%}
+            endfor
+            
+            assign out_of_stock_by_option = updated_out_of_stock_by_option
+          -%}
 
-        {%- if out_of_stock_by_option != '' -%}
-          <div class="out-of-stock-display">
+          {%- if out_of_stock_by_option != '' -%}
+            {%- assign has_out_of_stock_values = false -%}
             {%- assign out_of_stock_by_option_array = out_of_stock_by_option | split: '|' -%}
             {%- for option_entry in out_of_stock_by_option_array -%}
               {%- if option_entry != '' -%}
@@ -271,28 +293,45 @@
                 {%- assign out_of_stock_values = entry_parts[1] -%}
                 
                 {%- if out_of_stock_values != '' -%}
-                  {%- assign option_name = '' -%}
-                  {%- for name in option_names_array -%}
-                    {%- assign name_key = name | downcase | replace: ' ', '_' -%}
-                    {%- if name_key == option_key -%}
-                      {%- assign option_name = name -%}
-                      {%- break -%}
-                    {%- endif -%}
-                  {%- endfor -%}
-                  
-                  <div class="out-of-stock-section">
-                    <h4>Out of stock {{ option_name }}:</h4>
-                    <ul>
-                      {%- assign values_array = out_of_stock_values | split: ',' -%}
-                      {%- for value in values_array -%}
-                        <li>{{ value }}</li>
-                      {%- endfor -%}
-                    </ul>
-                  </div>
+                  {%- assign has_out_of_stock_values = true -%}
+                  {%- break -%}
                 {%- endif -%}
               {%- endif -%}
             {%- endfor -%}
-          </div>
+            
+            {%- if has_out_of_stock_values -%}
+              <div class="out-of-stock-display">
+                {%- for option_entry in out_of_stock_by_option_array -%}
+                  {%- if option_entry != '' -%}
+                    {%- assign entry_parts = option_entry | split: ':' -%}
+                    {%- assign option_key = entry_parts[0] -%}
+                    {%- assign out_of_stock_values = entry_parts[1] -%}
+                    
+                    {%- if out_of_stock_values != '' -%}
+                      {%- assign option_name = '' -%}
+                      {%- for name in option_names_array -%}
+                        {%- assign name_key = name | downcase | replace: ' ', '_' -%}
+                        {%- if name_key == option_key -%}
+                          {%- assign option_name = name -%}
+                          {%- break -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                      
+                      <div class="out-of-stock-section">
+                        <h4>Out of stock {{ option_name }}:</h4>
+                        <ul>
+                          {%- assign values_array = out_of_stock_values | split: ',' -%}
+                          {%- for value in values_array -%}
+                            <li>{{ value }}</li>
+                          {%- endfor -%}
+                        </ul>
+                      </div>
+                    {%- endif -%}
+                  {%- endif -%}
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+          {%- endif -%}
         {%- endif -%}
       {%- endif -%}
     {%- else -%}
