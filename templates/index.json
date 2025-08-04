@@ -77,6 +77,43 @@
         "padding_bottom": 36
       }
     },
+    "hero_banner_3t4Urq": {
+      "type": "hero-banner",
+      "blocks": {
+        "text_fErirn": {
+          "type": "text",
+          "settings": {
+            "heading": "Lorem ipsum dolor sit amet",
+            "text": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas porttitor nibh augue, sed congue odio vulputate sed. Integer vulputate vestibulum sodales. Pellentesque iaculis purus ex, id posuere nisi rhoncus id. Phasellus velit ante, suscipit vel auctor eget, molestie vitae libero. Etiam sodales facilisis metus. Fusce pellentesque lobortis ornare. Sed a faucibus lacus, id venenatis lacus. Phasellus euismod dui id augue malesuada porttitor.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "text_fErirn"
+      ],
+      "name": "Hero Banner",
+      "settings": {
+        "banner_height": 600,
+        "content_alignment": "center",
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "image": "shopify://shop_images/Banner-Desktop-PullBear-1.webp",
+        "video_url": "",
+        "show_overlay": true,
+        "overlay_opacity": 100,
+        "text_color": "#ffffff",
+        "text_drop_shadow": false,
+        "show_background_box": true,
+        "box_color": "#000000",
+        "box_opacity": 100,
+        "cta_1_text": "Hello World",
+        "cta_1_link": "#",
+        "cta_2_text": "Hello World",
+        "cta_2_link": "#",
+        "cta_border_color": "#ffffff",
+        "cta_text_color": "#ffffff"
+      }
+    },
     "collapsible_content_fgXp3Y": {
       "type": "collapsible-content",
       "blocks": {
@@ -123,6 +160,7 @@
   "order": [
     "image_banner",
     "featured_collection",
+    "hero_banner_3t4Urq",
     "collapsible_content_fgXp3Y"
   ]
 }
