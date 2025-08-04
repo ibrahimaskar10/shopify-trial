@@ -12,35 +12,31 @@
       padding-bottom: {{ section.settings.padding_bottom }}px;
     }
   }
+
+  #form-status {
+    margin-top: 15px;
+    font-weight: bold;
+  }
+
+  #form-status.success {
+    color: green;
+  }
+
+  #form-status.error {
+    color: red;
+  }
+
+  #register-submit-btn:disabled {
+    background-color: #ddd;
+  }
 {%- endstyle -%}
 
 <div class="customer register section-{{ section.id }}-padding">
   <h1>
     {{ 'customer.register.title' | t }}
   </h1>
-  {%- form 'create_customer', novalidate: 'novalidate' -%}
-    {%- if form.errors -%}
-      <h2 class="form__message" tabindex="-1" autofocus>
-        <span class="svg-wrapper">
-          {{- 'icon-error.svg' | inline_asset_content -}}
-        </span>
-        {{ 'templates.contact.form.error_heading' | t }}
-      </h2>
-      <ul>
-        {%- for field in form.errors -%}
-          <li>
-            {%- if field == 'form' -%}
-              {{ form.errors.messages[field] }}
-            {%- else -%}
-              <a href="#RegisterForm-{{ field }}">
-                {{ form.errors.translated_fields[field] | capitalize }}
-                {{ form.errors.messages[field] }}
-              </a>
-            {%- endif -%}
-          </li>
-        {%- endfor -%}
-      </ul>
-    {%- endif -%}
+
+  <form id="customer-register-form" novalidate>
     <div class="field">
       <input
         type="text"
@@ -127,10 +123,11 @@
         {{ form.errors.messages.password }}.
       </span>
     {%- endif -%}
-    <button>
+    <button type="submit" id="register-submit-btn">
       {{ 'customer.register.submit' | t }}
     </button>
-  {%- endform -%}
+    <div id="form-status"></div> <!-- Success/Failure messages will show here -->
+  </form>
 </div>
 
 {% schema %}
@@ -164,3 +161,88 @@
   ]
 }
 {% endschema %}
+
+{%- javascript -%}
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.getElementById("customer-register-form");
+  const submitButton = document.getElementById("register-submit-btn");
+  const statusMessage = document.getElementById("form-status");
+
+  const CUSTOMER_REGISTRATION_MUTATION = `
+    mutation customerCreate($input: CustomerCreateInput!) {
+      customerCreate(input: $input) {
+        customer {
+          firstName
+          lastName
+          email
+          acceptsMarketing
+        }
+        customerUserErrors {
+          field
+          message
+        }
+      }
+    }
+  `;
+
+  form.addEventListener("submit", function (event) {
+    event.preventDefault(); // Prevent the traditional form submission
+
+    // Disable the submit button and show a loading message
+    submitButton.disabled = true;
+    statusMessage.innerHTML = "Submitting... Please wait.";
+
+    // Collect the form data
+    const formData = new FormData(form);
+    const customerData = {
+      firstName: formData.get("customer[first_name]"),
+      lastName: formData.get("customer[last_name]"),
+      email: formData.get("customer[email]"),
+      password: formData.get("customer[password]"),
+      acceptsMarketing: false
+    };
+
+    // Send the data via GraphQL AJAX request
+    fetch('/api/unstable/graphql.json', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+            'X-Shopify-Storefront-Access-Token': 'f223c6fa9e52062c450cf7a85f27d2c3' // Replace with your actual token
+      },
+      body: JSON.stringify({
+        query: CUSTOMER_REGISTRATION_MUTATION,
+        variables: { input: customerData }
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.errors) {
+        // Show GraphQL errors
+        statusMessage.innerHTML = `Error: ${data.errors.map(err => err.message).join(", ")}`;
+        statusMessage.classList.add("error");
+        statusMessage.classList.remove("success");
+      } else if (data.data.customerCreate.customerUserErrors.length > 0) {
+        // Show GraphQL validation errors
+        statusMessage.innerHTML = `Error: ${data.data.customerCreate.customerUserErrors.map(error => error.message).join(", ")}`;
+        statusMessage.classList.add("error");
+        statusMessage.classList.remove("success");
+      } else {
+        // Success message
+        statusMessage.innerHTML = "Registration successful! Please check your email for verification.";
+        statusMessage.classList.add("success");
+        statusMessage.classList.remove("error");
+        form.reset(); // Reset form fields
+      }
+    })
+    .catch(error => {
+      statusMessage.innerHTML = "An error occurred. Please try again.";
+      statusMessage.classList.add("error");
+      statusMessage.classList.remove("success");
+    })
+    .finally(() => {
+      // Re-enable the submit button
+      submitButton.disabled = false;
+    });
+  });
+});
+{%- endjavascript -%}
