@@ -593,3 +593,19 @@
     clip-path: polygon(var(--shape--blob-5));
   }
 }
+.card__information .card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 1rem;
+  position: relative;
+}
+
+.card__information .card__header .add-to-cart {
+  background: transparent;
+  border: none;
+  position: absolute;
+  right: 0;
+  z-index: 100;
+  cursor: pointer;
+}
