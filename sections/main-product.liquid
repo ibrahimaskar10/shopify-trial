@@ -133,22 +133,6 @@
                     {%- endif -%}
                   </div>
                 {%- endif -%}
-                
-                {% if product.metafields.custom.material %}
-                  <div class="product-material">
-                    <strong>Material:</strong> {{ product.metafields.custom.material }}
-                  </div>
-                {% endif %}
-                {% if product.metafields.custom.care_guide %}
-                  {% assign care_guide = product.metafields.custom.care_guide %}
-                  <div class="care-guide">
-                    <h3>{{ care_guide.value.title }}</h3>
-                    <p>{{ care_guide.value.description }}</p>
-                    {% if care_guide.value.image %}
-                      <img src="{{ care_guide.value.image | file_url }}" alt="{{ care_guide.value.title }} care guide" width="50" height="50" />
-                    {% endif %}
-                  </div>
-                {% endif %}
                 <div {{ block.shopify_attributes }}>
                   {%- assign product_form_installment_id = 'product-form-installment-' | append: section.id -%}
                   {%- form 'product', product, id: product_form_installment_id, class: 'installment caption-large' -%}
@@ -213,6 +197,11 @@
                     {{ product.description }}
                   </div>
                 {%- endif -%}
+              {% if product.metafields.custom.material %}
+                  <div class="product-material">
+                    <strong>Material:</strong> {{ product.metafields.custom.material }}
+                  </div>
+                {% endif %}
               {%- when 'sku' -%}
                 <p
                   class="product__sku{% if block.settings.text_style == 'uppercase' %} caption-with-letter-spacing{% elsif block.settings.text_style == 'subtitle' %} subtitle{% endif %}{% if product.selected_or_first_available_variant.sku.size == 0 %} visibility-hidden{% endif %}"
