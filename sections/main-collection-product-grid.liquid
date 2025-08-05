@@ -195,6 +195,9 @@
   {%- endif -%}
 </div>
 
+{%- comment -%} Load collection quick add script for custom add-to-cart functionality {%- endcomment -%}
+<script src="{{ 'collection-quick-add.js' | asset_url }}" defer="defer"></script>
+
 {% schema %}
 {
   "name": "t:sections.main-collection-product-grid.name",
